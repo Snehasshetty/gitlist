@@ -1,0 +1,21 @@
+sudo git clone ""
+
+sudo apt update
+sudo apt install apache2 -y
+sudo systemctl start apache2
+sudo systemctl enable apache2
+
+sudo lsof -i :80
+sudo netstat -tulnp | grep :80
+
+
+sudo systemctl stop nginx
+sudo systemctl disable nginx
+
+
+ sudo docker ps | grep ":80->"
+sudo docker ps
+
+
+sudo systemctl restart apache2
+sudo systemctl status apache2
