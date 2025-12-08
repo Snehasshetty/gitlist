@@ -4,9 +4,12 @@ sudo visudo
 #add below line in sudo section
 jenkins ALL=(ALL) NOPASSWD:ALL
 sudo systemctl restart jenkins
+sudo systemctl status docker
+
 sudo chmod -R 777 /var/run/docker.sock
 sudo usermod -aG docker jenkins
 sudo systemctl restart jenkins
+
 sudo usermod -aG docker $USER
 newGRP docker
 sudo -u jenkins docker login -u sheetalsshetty
@@ -19,3 +22,4 @@ ExecStart=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2375
 sudo systemctl daemon-reload
 sudo systemctl daemon-reexec
 sudo systemctl restart docker 
+sudo systemctl restart jenkins
