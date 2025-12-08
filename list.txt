@@ -1,1 +1,258 @@
 nonew
+VIVA QUESTIONS & ANSWERS
+
+### 🔹 **1️⃣ What is DevOps?**
+
+DevOps is a culture and set of practices that integrate **Development** and **Operations** teams to deliver software **faster, reliably, and continuously** through automation.
+
+---
+
+### 🔹 **2️⃣ What are the main stages of DevOps lifecycle?**
+
+* **Plan** (JIRA, Azure Boards)
+* **Code** (Git, GitHub)
+* **Build** (Maven, npm)
+* **Test** (JUnit, Selenium)
+* **Deploy** (Jenkins, Ansible, Docker)
+* **Operate** (Kubernetes)
+* **Monitor** (Prometheus, Grafana)
+
+---
+
+### 🔹 **3️⃣ What is CI/CD?**
+
+* **Continuous Integration:** Code is frequently integrated, built, and tested automatically.
+* **Continuous Delivery/Deployment:** Code is automatically deployed to staging/production with minimal manual steps.
+
+---
+
+### 🔹 **4️⃣ What is Jenkins used for?**
+
+Jenkins is an **automation server** used to create **CI/CD pipelines**, performing tasks like:
+✔ Pull code
+✔ Build
+✔ Test
+✔ Deploy
+Automatically on every code change.
+
+---
+
+### 🔹 **5️⃣ What are Build tools you used?**
+
+* **Java apps → Maven**
+* **Node.js apps → npm or Makefile**
+* **PHP → No build, only copy deployment**
+
+---
+
+### 🔹 **6️⃣ Commands for Jenkins workspace execution**
+
+Example Node:
+
+```bash
+npm install
+npm test || true
+npm start &
+```
+
+Example Docker deploy:
+
+```bash
+docker build -t app:v1 .
+docker run --name app -d -p 3000:3000 app:v1
+```
+
+---
+
+### 🔹 **7️⃣ What is Docker? Why is it used?**
+
+Docker is a **containerization platform** used to package applications with their dependencies so they run **consistently across environments**.
+
+Benefits:
+✔ Portable
+✔ Lightweight
+✔ Faster deployment
+✔ Scales easily
+
+---
+
+### 🔹 **8️⃣ What is the difference between VM and Containers?**
+
+| Virtual Machine | Container      |
+| --------------- | -------------- |
+| Heavyweight     | Lightweight    |
+| Boots OS        | Shares Host OS |
+| Slow startup    | Fast startup   |
+| GB size         | MB size        |
+
+---
+
+### 🔹 **9️⃣ Dockerfile — what is it?**
+
+A text file containing **instructions** to build a Docker image.
+
+Example:
+
+```dockerfile
+FROM node:16-alpine
+WORKDIR /app
+COPY . .
+RUN npm install
+CMD ["npm","start"]
+```
+
+---
+
+### 🔹 **10️⃣ Docker commands you used**
+
+```bash
+docker build -t app:v1 .
+docker images
+docker run -d -p 3000:3000 app:v1
+docker ps -a
+docker rm -f app
+docker login && docker push app:v1
+```
+
+---
+
+### 🔹 **11️⃣ What is Kubernetes?**
+
+Kubernetes is a **container orchestration** platform that automates:
+✔ Deployment
+✔ Scaling
+✔ Load Balancing
+✔ Self-healing of containers
+
+---
+
+### 🔹 **12️⃣ What is a Pod / Deployment / Service?**
+
+| Concept        | Purpose                                |
+| -------------- | -------------------------------------- |
+| **Pod**        | Smallest unit → runs container(s)      |
+| **Deployment** | Manages ReplicaSets, updates, scaling  |
+| **Service**    | Provides stable network access to Pods |
+
+---
+
+### 🔹 **13️⃣ Check Kubernetes connection**
+
+```bash
+kubectl get nodes
+cat ~/.kube/config
+```
+
+---
+
+### 🔹 **14️⃣ How to apply manifests?**
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+kubectl get pods
+kubectl get svc
+```
+
+---
+
+### 🔹 **15️⃣ What is Git used for?**
+
+Git is a **distributed version control** system used for tracking changes in source code.
+
+Basic commands:
+
+```bash
+git clone <url>
+git add .
+git commit -m "message"
+git push origin master
+```
+
+---
+
+### 🔹 **16️⃣ What is Maven?**
+
+Build automation tool for **Java** that handles:
+✔ Compile
+✔ Test
+✔ Package (war/jar)
+Using **pom.xml**
+
+```bash
+mvn package
+```
+
+---
+
+### 🔹 **17️⃣ What is Tomcat used for?**
+
+Tomcat is a **Java application server** for deploying **WAR (Web Application Archive)** files.
+
+Service commands:
+
+```bash
+sudo systemctl start tomcat9
+sudo systemctl status tomcat9
+```
+
+---
+
+### 🔹 **18️⃣ Basic troubleshooting in CI**
+
+| Error                     | Reason                       | Fix                              |
+| ------------------------- | ---------------------------- | -------------------------------- |
+| `sudo: password required` | Jenkins can't use sudo       | Remove sudo                      |
+| `404 Manager not found`   | Tomcat manager not installed | `sudo apt install tomcat9-admin` |
+| Docker push denied        | No DockerHub credentials     | Add credentials in Jenkins       |
+
+---
+
+### 🔹 **19️⃣ Why avoid sudo in Jenkins Execute Shell?**
+
+Because Jenkins runs as **non-root user**, and **cannot provide password** → build fails.
+Tools must be **pre-installed** on CI server.
+
+---
+
+### 🔹 **20️⃣ Advantages of CI/CD in real-world**
+
+* Faster delivery
+* Fewer errors
+* Automated deployment
+* Consistent builds
+* Better collaboration
+
+---
+
+## ⭐ BONUS HIGH-SCORE QUESTIONS
+
+| Question                         | Short Winning Answer                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------ |
+| What is Infrastructure as Code?  | Managing servers/config as code using tools like Docker, Kubernetes, Terraform |
+| What is Container Orchestration? | Automatic management of container lifecycle and scaling (Kubernetes)           |
+| Blue-Green Deployment?           | Two identically running environments → zero-downtime switching                 |
+| What is Declarative Manifest?    | Kubernetes YAML files describing desired state                                 |
+
+---
+
+## 🎯 Quick Revision Before Exam
+
+✔ Dockerfile → Explain
+✔ Jenkins post-build steps → Deploy
+✔ kubectl → Check pods & services
+✔ tomcat9 service commands
+✔ No sudo inside Jenkins script
+✔ CI/CD pipeline high-level explanation
+
+**You now have all viva answers required to score full marks 🔥💯**
+
+---
+
+If you want, I can also give you:
+📌 A small one-page **DevOps Lab Cheat Sheet** (commands + architecture diagrams)
+📌 A short **CI/CD explanation paragraph** to write in answer sheet
+📌 Deployment screenshots format for Node/PHP/Java apps
+
+Would you like that? 😊
+
