@@ -1,0 +1,72 @@
+//OperatorService.java
+
+
+package com.example.calculator;
+
+import java.util.List;
+import javax.jws.WebMethod;
+import javax.jws.WebService;
+
+@WebService
+public class OperatorService {
+
+  @WebMethod
+  public int add(int a, int b) { return a + b; }
+
+  @WebMethod
+  public int sub(int a, int b) { return a - b; }
+
+  @WebMethod
+  public int mul(int a, int b) { return a * b; }
+
+  @WebMethod
+  public int div(int a, int b) { return a / b; }
+
+}
+
+
+
+
+//operatorpublisher.java
+
+
+package com.example.calculator;
+
+import javax.xml.ws.Endpoint;
+
+public class OperatorPublisher {
+  public static void main(String[] args) {
+    String url = "http://localhost:8085/calculator";
+    Endpoint.publish(url, new OperatorService());
+    System.out.println("Service started at: " + url + "?wsdl");
+  }
+}
+
+
+
+TestOperatorClient.java
+
+
+package com.example.client;
+
+public class TestOperatorClient {
+  public static void main(String[] args) {
+    OperatorServiceService service = new OperatorServiceService();
+    OperatorService port = service.getOperatorServicePort();
+
+    System.out.println("Add: " + port.add(10, 5));
+    System.out.println("Sub: " + port.sub(10, 5));
+    System.out.println("Mul: " + port.mul(10, 5));
+    System.out.println("Div: " + port.div(10, 5));
+  }
+}
+
+
+
+///terminal
+
+cd   IdeaProjects/client/src/ 
+
+wsimport -keep -p com.example.client http://localhost:8085/calculator?wsdl
+
+
