@@ -1,0 +1,420 @@
+//pyspark
+
+To run **PySpark in Jupyter Notebook**, first you need to check:
+
+1. ✅ Is **Python** installed?
+2. ✅ Is **Jupyter Notebook** installed?
+3. ✅ Is **PySpark** installed?
+4. ✅ Is **Java** installed? (Very important for Spark)
+
+---
+
+# 🔍 Step 1: Check Python
+
+Open terminal / command prompt:
+
+```bash
+python --version
+```
+
+or
+
+```bash
+python3 --version
+```
+
+If version appears → ✅ Installed
+If not → Install Python.
+
+---
+
+# 🔍 Step 2: Check Jupyter Notebook
+
+```bash
+jupyter notebook --version
+```
+
+If version appears → ✅ Installed
+If not, install using:
+
+```bash
+pip install notebook
+```
+
+---
+
+# 🔍 Step 3: Check PySpark Installation
+
+### Method 1 (Simple)
+
+```bash
+pip show pyspark
+```
+
+If installed → it will show version, location etc.
+If not installed → it will show nothing.
+
+---
+
+### Method 2 (Try Importing in Python)
+
+Open Python:
+
+```bash
+python
+```
+
+Then type:
+
+```python
+import pyspark
+print(pyspark.__version__)
+```
+
+If no error → ✅ Installed
+If error like `ModuleNotFoundError` → ❌ Not installed
+
+---
+
+# 🔍 Step 4: Check Java (Important ⚠️)
+
+Spark needs Java.
+
+```bash
+java -version
+```
+
+If version appears → ✅ Good
+If not → Install Java (JDK 8 or 11 recommended)
+
+---
+
+# 🚀 If PySpark is NOT Installed
+
+Install using:
+
+```bash
+pip install pyspark
+```
+
+---
+
+# 🔍 Final Check (Very Important)
+
+Open Jupyter Notebook:
+
+```bash
+jupyter notebook
+```
+
+Create new notebook and run:
+
+```python
+from pyspark.sql import SparkSession
+
+spark = SparkSession.builder.appName("Test").getOrCreate()
+
+spark.range(5).show()
+```
+
+If output prints numbers → 🎉 PySpark working correctly!
+
+---
+
+# 🧠 Common Issues
+
+| Problem            | Solution           |
+| ------------------ | ------------------ |
+| Java error         | Install JDK        |
+| Spark not starting | Set `JAVA_HOME`    |
+| Kernel dies        | Check Java version |
+
+---
+
+If you tell me:
+
+* Windows or Linux?
+* Using Anaconda or pip?
+
+I can give exact step-by-step setup for your system 😊
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+
+# 📘 RDD LAB ASSIGNMENTS (Questions)
+
+(From: )
+
+### Part 1: Basic RDD Programs
+
+1. Create RDDs in three different ways.
+2. Read a text file and count number of words.
+3. Find word frequency in a file.
+4. Convert all words to uppercase.
+5. Convert all words to lowercase.
+6. Capitalize first letter of each word.
+7. Count occurrence of a specific word.
+8. Select sentences containing a given word.
+9. Find longest word length.
+10. Map registration number to branch:
+
+* 58000 → BDA
+* 57000 → AIML
+* 38000 → VLSI
+* 39000 → ES
+* 47000 → CDC
+
+11. From numbers file → find:
+
+* Max
+* Min
+* Sum
+* Mean
+
+---
+
+### Part 2: Citizen Dataset
+
+* Replace full state names with codes (KA, TN, KL, etc.)
+
+---
+
+### Part 3: Student Dataset
+
+1. Students per institute
+2. Students per program
+3. Boys vs Girls count
+4. Boys/Girls in selected institute
+
+---
+
+### Part 4: Temperature Dataset
+
+1. Max & Min temperature of all cities
+2. Count records per city
+3. Max & Min for Bangalore
+4. Max & Min for given city
+
+---
+
+### Part 5: Bank Dataset
+
+1. Unique customers
+2. Unique bank IDs
+3. Customers per bank
+4. Transactions per account
+5. Credit transactions per account per year
+
+---
+
+# 📗 RDD LAB ANSWERS (PySpark Code)
+
+(From: )
+
+---
+
+## 1. Create RDDs
+
+```python
+rdd1 = sc.parallelize([1,2,3,4,5])
+rdd2 = sc.textFile("sample.txt")
+rdd3 = rdd1.map(lambda x: x*2)
+```
+
+---
+
+## 2. Word Count
+
+```python
+rdd = sc.textFile("sample.txt")
+word_count = rdd.flatMap(lambda line: line.split()).count()
+```
+
+---
+
+## 3. Word Frequency
+
+```python
+freq = rdd.flatMap(lambda line: line.split()) \
+          .map(lambda word: (word,1)) \
+          .reduceByKey(lambda a,b: a+b)
+```
+
+---
+
+## 4. Uppercase
+
+```python
+upper = rdd.flatMap(lambda line: line.split()) \
+           .map(lambda word: word.upper())
+```
+
+---
+
+## 5. Lowercase
+
+```python
+lower = rdd.flatMap(lambda line: line.split()) \
+           .map(lambda word: word.lower())
+```
+
+---
+
+## 6. Capitalize
+
+```python
+cap = rdd.flatMap(lambda line: line.split()) \
+         .map(lambda word: word.capitalize())
+```
+
+---
+
+## 7. Word Occurrence
+
+```python
+word = "good"
+count = rdd.flatMap(lambda line: line.split()) \
+           .filter(lambda w: w == word) \
+           .count()
+```
+
+---
+
+## 8. Filter Sentences
+
+```python
+sentences = rdd.filter(lambda line: "good" in line)
+```
+
+---
+
+## 9. Longest Word
+
+```python
+longest = rdd.flatMap(lambda line: line.split()) \
+             .map(lambda word: len(word)) \
+             .max()
+```
+
+---
+
+## 10. Registration → Branch Mapping
+
+```python
+def branch_mapper(reg):
+    if reg.startswith("58"): return (reg,"BDA")
+    elif reg.startswith("57"): return (reg,"AIML")
+    elif reg.startswith("38"): return (reg,"VLSI")
+    elif reg.startswith("39"): return (reg,"ES")
+    elif reg.startswith("47"): return (reg,"CDC")
+
+mapped = reg_rdd.map(branch_mapper)
+```
+
+---
+
+## 11. Numbers Operations
+
+```python
+num_rdd = sc.textFile("numbers.txt") \
+            .flatMap(lambda line: line.split()) \
+            .map(lambda x: float(x))
+
+num_rdd.max()
+num_rdd.min()
+num_rdd.sum()
+num_rdd.mean()
+```
+
+---
+
+## 12. Citizen Compression
+
+```python
+state_map = {"Karnataka":"KA","TamilNadu":"TN","Kerala":"KL"}
+
+def compress(line):
+    parts = line.split(",")
+    parts[-1] = state_map.get(parts[-1], parts[-1])
+    return ",".join(parts)
+
+compressed = citizen.map(compress)
+```
+
+---
+
+## 13. Student Dataset
+
+```python
+data = students.map(lambda x: x.split(","))
+
+# students per institute
+data.map(lambda x: (x[1],1)).reduceByKey(lambda a,b: a+b)
+
+# program count
+data.map(lambda x: (x[2],1)).reduceByKey(lambda a,b: a+b)
+
+# gender count
+data.map(lambda x: (x[3],1)).reduceByKey(lambda a,b: a+b)
+```
+
+---
+
+## 14. Temperature Dataset
+
+```python
+temps = data.map(lambda x: float(x[1]))
+temps.max()
+temps.min()
+
+# per city count
+data.map(lambda x: (x[2],1)).reduceByKey(lambda a,b: a+b)
+
+# Bangalore
+bang = data.filter(lambda x: x[2]=="Bangalore") \
+           .map(lambda x: float(x[1]))
+```
+
+---
+
+## 15. Bank Dataset
+
+```python
+data = bank.map(lambda x: x.split(","))
+
+# unique customers
+data.map(lambda x: x[1]).distinct().count()
+
+# unique banks
+data.map(lambda x: x[0]).distinct().count()
+
+# customers per bank
+data.map(lambda x: (x[0], x[1])) \
+    .distinct() \
+    .map(lambda x: (x[0],1)) \
+    .reduceByKey(lambda a,b: a+b)
+
+# transactions per account
+data.filter(lambda x: x[1]=="10002").count()
+
+# credit transactions in year
+data.filter(lambda x: x[1]=="10004" and x[3]=="credit" and x[2].split("-")[2]=="2024").count()
+```
+
+---
+
+## ✅ Done
+
+You now have:
+
+* ✔ Clean **questions list**
+* ✔ Proper **answers (code format)**
+
+---
+
+If you want, I can:
+
+* Convert this into **PDF / Word**
+* Or simplify answers for **exam writing (theory + code explanation)**
+
