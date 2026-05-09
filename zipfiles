@@ -1,211 +1,91 @@
+router 0
+cli 
+en
+conf t
+int gig0/0
+ip add 10.0.0.1 255.0.0.0
+no shut
 
-//TESTWORDCOUNT
+int gig0/1
+ip add 192.168.2.1 255.255.255.128 (lan A DG and subnet)
+no shut
 
-package testwordcount;
+int gig0/2
+ip add 192.168.2.161 255.255.255.224 (lan B DG and subnet)
+no shut
 
-import java.io.IOException;
-import java.util.StringTokenizer;
+route 1
+cli
+en 
+conf t
+int gig 0/0
+ip add 10.0.0.2 255.0.0.0
+no shut
 
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
+int gig0/1
+ip add 192.168.2.193 255.255.255.240
+no shut
 
-public class testwordcount {
+int gig0/2
+ip add 192.168.2.129 255.255.255.224
+no shut
 
-	public static class testWordCountMapper extends Mapper<LongWritable, Text, Text, IntWritable> {
-        public void map(LongWritable key, Text values, Context context) throws IOException, InterruptedException {
-            
-            StringTokenizer tokenizer = new StringTokenizer(values.toString());
+static ip 
+router 0
+en
+conf t
+ip route 192.168.2.192 255.255.255.240 10.0.0.2 (lan c ni)
+ip route 192.168.2.128 255.255.255.224 10.0.0.2 (lan d ni)
 
-            while (tokenizer.hasMoreTokens()) {
-                values.set(tokenizer.nextToken());
-                context.write(values, new IntWritable(1));
-            }
+router 1
+en
+conf t
+ip route 192.168.2.0 255.255.255.128 10.0.0.1 (lan a ni)
+ip route 192.168.2.160 255.255.255.224 10.0.0.1 (lan b ni)
 
-        }
-    }
+router 0
+lan b
+int gig0/2
+ip helper-address 192.168.2.2
+do wr
 
-    public static class testWordCountReducer extends Reducer<Text, IntWritable, Text, IntWritable> {
-        public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException{
+router 1
+lan c
+int gig0/1
+ip helper-address 192.168.2.2
+do wr
 
-            int count = 0;
-            for (IntWritable x:values) {
-                count += x.get();
-            }
-            context.write(key, new IntWritable(count));
-        }
-    }
-    
-    public static void main(String[] args) throws Exception {
+int gig0/2
+ip helper-address 192.168.2.2
+do wr
 
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "word-count");
-        job.setJarByClass(testwordcount.class);
-        job.setMapperClass(testWordCountMapper.class);
-        job.setReducerClass(testWordCountReducer.class);
+lan a 
+server
+services
+ pool name : laN a 
+dg     192.168.2.1
+dns    192.168.2.162
+static 192.168.2.3
+subnet 255.255.255.128
+max    102
 
-        job.setOutputKeyClass(Text.class);
-        job.setOutputValueClass(IntWritable.class);
+pool name : laN b
+dg     192.168.2.161
+dns    192.168.2.162
+static 192.168.2.163
+subnet 255.255.255.224
+max    13
 
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
+pool name : laN c
+dg     192.168.2.193
+dns    192.168.2.162
+static 192.168.2.195
+subnet 255.255.255.240
+max    6
 
-        System.exit(job.waitForCompletion(true) ? 0:1);
-    }
-}
-
-
-
-
-//WORDLENGTHCOUNT
-
-
-package wordlengthcount;
-
-import java.io.IOException;
-import java.util.StringTokenizer;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-
-public class wordlengthcount {
-
-	public static class WordLengthMapper
-    extends Mapper<LongWritable, Text, IntWritable, IntWritable> {
-
-private final static IntWritable one = new IntWritable(1);
-private IntWritable length = new IntWritable();
-
-public void map(LongWritable key, Text value, Context context)
-        throws IOException, InterruptedException {
-
-    StringTokenizer tokenizer = new StringTokenizer(value.toString());
-
-    while (tokenizer.hasMoreTokens()) {
-        String word = tokenizer.nextToken();
-        length.set(word.length());   // key = word length
-        context.write(length, one);
-    }
-}
-}
-	
-	public static class WordLengthReducer
-    extends Reducer<IntWritable, IntWritable, IntWritable, IntWritable> {
-
-public void reduce(IntWritable key, Iterable<IntWritable> values,
-                   Context context) throws IOException, InterruptedException {
-
-    int sum = 0;
-    for (IntWritable val : values) {
-        sum += val.get();
-    }
-    context.write(key, new IntWritable(sum));
-}
-}
-	public static void main(String[] args) throws Exception {
-
-        Configuration conf = new Configuration();
-        Job job = Job.getInstance(conf, "word length count");
-
-        job.setJarByClass(wordlengthcount.class);
-        job.setMapperClass(WordLengthMapper.class);
-        job.setReducerClass(WordLengthReducer.class);
-
-        job.setOutputKeyClass(IntWritable.class);   // length
-        job.setOutputValueClass(IntWritable.class); // count
-
-
-        FileInputFormat.addInputPath(job, new Path(args[0]));
-        FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-        System.exit(job.waitForCompletion(true) ? 0 : 1);
-    }
-}
-
-//LOGANALYSIS
-
-package loganalysis;
-
-import java.io.IOException;
-
-import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.fs.Path;
-import org.apache.hadoop.io.IntWritable;
-import org.apache.hadoop.io.LongWritable;
-import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapreduce.Job;
-import org.apache.hadoop.mapreduce.Mapper;
-import org.apache.hadoop.mapreduce.Reducer;
-import org.apache.hadoop.mapreduce.lib.input.FileInputFormat;
-import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
-
-public class loganalysis {
-
-	public static class MapperClass
-    extends Mapper<LongWritable, Text, Text, IntWritable> {
-
-    public void map(LongWritable key, Text value, Context context)
-            throws IOException, InterruptedException {
-
-        String[] fields = value.toString().split(" ");
-
-        String ip = fields[0];        // IP address
-        String resource = fields[6]; // URL
-        String status = fields[8];   // status code
-
-        context.write(new Text("IP_" + ip), new IntWritable(1));
-        context.write(new Text("STATUS_" + status), new IntWritable(1));
-        context.write(new Text("RES_" + resource), new IntWritable(1));
-    }
-}
-
-public static class ReducerClass
-    extends Reducer<Text, IntWritable, Text, IntWritable> {
-
-    public void reduce(Text key, Iterable<IntWritable> values,
-                       Context context)
-            throws IOException, InterruptedException {
-
-        int sum = 0;
-        for (IntWritable v : values) {
-            sum += v.get();
-        }
-        context.write(key, new IntWritable(sum));
-    }
-}
-
-public static void main(String[] args) throws Exception {
-
-    Configuration conf = new Configuration();
-    Job job = Job.getInstance(conf, "hdfs log analysis");
-
-    job.setJarByClass(loganalysis.class);
-    job.setMapperClass(MapperClass.class);
-    job.setReducerClass(ReducerClass.class);
-
-    job.setOutputKeyClass(Text.class);
-    job.setOutputValueClass(IntWritable.class);
-
-    FileInputFormat.addInputPath(job, new Path(args[0]));
-    FileOutputFormat.setOutputPath(job, new Path(args[1]));
-
-    System.exit(job.waitForCompletion(true) ? 0 : 1);
-}
-
-}
-
+pool name : laN d 
+dg     192.168.2.129
+dns    192.168.2.162
+static 192.168.2.130
+subnet 255.255.255.224
+max    28
