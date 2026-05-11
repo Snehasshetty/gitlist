@@ -1,1 +1,779 @@
 
+251100680022
+Cloud Operation CDC 5231 Assignment
+Business Use Cases or needs as follows:
+1. Café business Client requires a solution for hosting static website as
+they wish to promote café products to their customers.
+Module 2: Activity 2 - Create a Website on S3
+Proposed Cloud Solution
+To meet the business requirement, the following AWS services are used:
+• Amazon EC2 – For secure administrative access and automation
+• AWS CLI – To manage AWS resources programmatically
+• Amazon S3 – To host the static website
+• IAM – To provide secure and controlled access to S3
+Implementation
+Task 1: Connect to Amazon Linux EC2 using SSH
+Steps:
+1. Download the labsuser.pem key file from the AWS console.
+2. Move to the directory containing the key:
+cd ~/Downloads
+3. Secure the key file:
+251100680022
+Sudo chmod 400 labsuser.pem
+4. Copy the Public IPv4 address of the EC2 instance.
+5. Connect via SSH:
+ssh -i labsuser.pem ec2-user@<public-ip>
+Task 2: Configure AWS CLI on EC2
+Command: aws configure
+• Default region name: eu-east-1
+• Default output format: json
+sudo nano ~/.aws/credentials
+• AWS Access Key ID: (from lab credentials)
+• AWS Secret Access Key: (from lab credentials)
+251100680022
+Task 3: Create an Amazon S3 Bucket using AWS CLI
+Command-
+aws s3api create-bucket --bucket <unique-bucket-name> --region us-east-1
+Task 4: Extract Website Files
+Commands-
+cd sysops-activity-files
+sudo tar xvzf static-website.tar.gz
+ls
+sudo rm -rf static-website.tar.gz
+251100680022
+Task 5: Configure S3 for Static Website Hosting
+Step 1: Set Ownership Controls
+Command-
+aws s3api put-bucket-ownership-controls --bucket <my-bucket> \
+--ownership-controls "Rules=[{ObjectOwnership=BucketOwnerPreferred}]"
+Step 2: Allow Public Access
+aws s3api put-public-access-block --bucket <my-bucket>
+--public-access-block-configuration \
+"BlockPublicAcls=false,IgnorePublicAcls=false,BlockPublicPolicy=false,RestrictPublicBuc
+kets=false"
+Step 3: Enable Website Hosting
+aws s3 website s3://<my-bucket>/ --index-document index.html
+Step 4: Upload Files
+251100680022
+aws s3 cp . s3://<my-bucket>/ --recursive --acl public-read
+Verification:
+aws s3 ls <my-bucket>
+Task 5: IAM User Analysis
+IAM User: awsS3user
+251100680022
+Copy the console sign-in link.
+• In the Security credentials tab, copy the Console sign-in link
+• Open a private browser window and log in as the awsS3user IAM user.
+In the console, choose the Services menu, and choose S3.
+The Amazon S3 console displays without any errors.
+251100680022
+Task 7: Automating Website Updates
+Create Script:
+touch update-website.sh
+nano update-website.sh
+Script Content:
+#!/bin/bash
+aws s3 cp ~/sysops-activity-files/ s3://<my-bucket>/ --recursive --acl public-read
+Make it an executable batch file:
+chmod +x update-website.sh
+251100680022
+Website Update Example:
+Modify HTML:
+nano sysops-activity-files/index.html
+Changes Made:
+• aquamarine → gainsboro
+• orange → cornsilk
+Deploy Changes:
+./update-website.sh
+Website updated instantly with a single command.
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+2. Café business Client requires a solution for hosting dynamic website
+as their users can pre-order café products. As a cloud operation engineer
+provide a solution for implementing the business needs.
+Module 3: Activity 3 - Troubleshoot Creating an EC2 Instance Using the AWS CLI
+Proposed Cloud Solution
+Implementation
+Task 1: Connect to Amazon Linux EC2 using SSH
+251100680022
+Steps:
+3. Download the labsuser.pem key file from the AWS console.
+4. Move to the directory containing the key:
+cd Downloads
+4. Secure the key file:
+Sudo chmod 400 labsuser.pem
+6. Copy the Public IPv4 address of the EC2 instance.
+7. Connect via SSH:
+ssh -i labsuser.pem ec2-user@<public-ip>
+Task 2: Configure AWS CLI on EC2
+Command: aws configure
+• Default region name: eu-east-1
+• Default output format: json
+251100680022
+sudo nano ~/.aws/credentials
+• AWS Access Key ID: (from lab credentials)
+• AWS Secret Access Key: (from lab credentials)
+Task 3: Create EC2 Instance using AWS CLI Script
+Task 3.1: Analyze Deployment Script
+cd sysops-activity-files/starters
+Backup the script:
+cp create-lamp-instance.sh create-lamp-instance.backup
+Open script:
+nano create-lamp-instance.sh
+Script Capabilities:
+• Locates MomPopCafe VPC
+• Identifies correct Subnet, AMI, Key Pair
+• Creates Security Group (ports 22 & 80)
+• Launches EC2 instance
+• Executes user-data script to install:
+o Apache Web Server
+o PHP
+o MariaDB
+o Café application and database
+251100680022
+Task 3.2: Execute the Script
+./create-lamp-instance.sh
+The script fails
+Task 3.3: Troubleshooting Issues
+Issue #1: InvalidSubnetID.NotFound
+Modify script to update region to us-east-1
+251100680022
+Issue #3: Website Not Loading on Port 80
+251100680022
+Change port to 80
+sudo systemctl status httpd
+Install Nmap:
+sudo yum install -y nmap
+nmap -Pn <public-ip>
+sudo systemctl start httpd
+sudo systemctl enable httpd
+6. Verify Dynamic Website Functionality
+251100680022
+Access Website: http://<public-ip>/mompopcafe/
+
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////////
+3. Café business client wishes to have an isolated networking space for
+provisioning services and infrastructure for his banking dynamic
+application. Client also wishes to deploy front-end of his application
+open to public and needs a private and secure environment for his
+database layer. Based on the requirements, VPC is created with public
+subnets hosting web server and private subnets with database servers.
+Customers of café business are not able to access site and
+administrators are not able to login to web server via SSH. As a Cloud
+operations engineer provide the steps that you follow to troubleshoot the
+issues
+Module 7 – Networking - Activity 7 - Troubleshoot a VPC
+Task 1: Connect to CLI Host EC2 Instance
+Purpose: The CLI Host acts as a jump box to analyze VPC resources securely.
+cd ~/Downloads
+chmod 400 labsuser.pem
+ssh -i labsuser.pem ec2-user@<CliHostIP>
+251100680022
+Task 1.2: Configure AWS CLI
+Discover Region:
+curl http://169.254.169.254/latest/dynamic/instance-identity/document | grep region
+Configure AWS CLI
+Command: aws configure
+• Default region name: eu-east-1
+• Default output format: json
+nano ~/.aws/credentials
+• AWS Access Key ID: (from lab credentials)
+• AWS Secret Access Key: (from lab credentials)
+251100680022
+Task 2: Enable VPC Flow Logs (Visibility Layer)
+Create an S3 bucket to hold the flow logs from VPC Flow Logs. Then you enable VPC Flow
+Logs on VPC1 to capture information about IP traffic between network interfaces in VPC1
+to the flow logs. The flow logs will then be stored in the S3 bucket.
+Create S3 Bucket
+aws s3api create-bucket --bucket flowlog0270 --region <region>
+Command to get the VPC ID for VPC1
+aws ec2 describe-vpcs --query 'Vpcs[*].[VpcId,Tags[?Key==`Name`].Value,CidrBlock]' --
+filters "Name=tag:Name,Values='VPC1'"
+Enable Flow Logs on VPC1
+aws ec2 create-flow-logs --resource-type VPC --resource-ids <vpc-id> --traffic-type ALL \
+--log-destination-type s3 --log-destination arn:aws:s3:::<flowlog####>
+Verification: aws ec2 describe-flow-logs
+251100680022
+Task 3: Troubleshooting Web & SSH Access
+Step 1: Confirm Instance State
+aws ec2 describe-instances --filter "Name=ip-address,Values='<WebServerIP>'" --query
+'Reservations[*].Instances[*].[State,PrivateIpAddress,InstanceId,SecurityGroups,SubnetId
+,KeyName]'
+Step 2: Port Scan Using Nmap
+Use the nmap utility to check what ports are open on the web server EC2 instance
+sudo yum install -y nmap
+nmap <WebServerIP>
+Indicates traffic blocked before reaching the instance
+Step 3: Security Group Validation
+aws ec2 describe-security-groups --group-ids <WebServerSgId>
+251100680022
+Get the security group ID of the security group that is associated with the web server
+instance by choosing Show in the Details section
+251100680022
+Security Group allows TCP 22 (SSH) and TCP 80 (HTTP). Hence Security Group is not the
+issue
+Step 4: Route Table Analysis
+aws ec2 describe-route-tables \
+--filter "Name=association.subnet-id,Values='<VPC1PublicSubnetID>'"
+Replace <VPC1PubSubnetID> with the actual subnet ID value found by choosing Show in
+the Details drop down menu
+251100680022
+251100680022
+Issue: Public subnet route table missing Internet Gateway route. No route to 0.0.0.0/0 →
+igw
+Resolution: Create Internet Gateway Route
+aws ec2 create-route \
+--route-table-id <route-table-id> --destination-cidr-block 0.0.0.0/0 --gateway-id <igw-id>
+Get the route-table-id and gateway-id by choosing Show in the Details section
+Now Website loads successfully:
+SSH to connect to the EC2 instance that hosts the web server again
+SSH Still Not Working
+Step 5: Network ACL Analysis
+aws ec2 describe-network-acls \
+251100680022
+--filter "Name=association.subnet-id,Values='<VPC1PublicSubnetID>'" \
+--query 'NetworkAcls[*].[NetworkAclId,Entries]'
+•
+Inbound Rules (Egress = false)
+Rule # Protocol Port Action Effect
+40 TCP (6) 22 DENY Blocks SSH
+100 ALL (-1) ALL ALLOW Allows everything else
+32767 ALL ALL DENY Default deny
+Outbound Rules (Egress = true)
+Rule # Protocol Port Action
+100 ALL (-1) ALL ALLOW
+32767 ALL ALL DENY
+251100680022
+Outbound traffic is allowed
+Issue: SSH access fails because the Network ACL has an explicit DENY rule (Rule 40) for
+inbound TCP port 22, which is evaluated before the ALLOW rule.
+Resolution: Fix Network ACL
+Delete the Deny Rule:
+aws ec2 delete-network-acl-entry --network-acl-id acl-0cd6d4f1be3b0d1cc \
+--rule-number 40 --ingress
+Verification:
+ssh -i labsuser.pem ec2-user@<WebServerIP>
+Task 4: Flow Log Analysis
+Download Logs
+mkdir flowlogs
+cd flowlogs
+aws s3 cp s3://<flowlog####>/ . --recursive
+cd AWSLogs/611329128647/vpcflowlogs/us-east-1/2026/02/28/
+gunzip *.gz
+251100680022
+Analyze the logs
+Run a grep command the looks in each log file in the current directory, and returns lines
+that contain the word REJECT:
+grep -rn REJECT .
+Find out how many records were returned:
+grep -rn REJECT . | wc –l
+Identify Rejected SSH Attempts
+grep -rn ' 22 ' . | grep REJECT
+251100680022
+Filter by Your IP
+grep -rn ' 22 ' . | grep REJECT | grep <your-public-ip>
+(Find the IP address to which your local computer is addressable from the internet.
+To do this:
+• Log in to the AWS Management Console.
+• Go to the EC2 service in the same Region where your EC2 instances are running.
+• Choose Security Groups.
+• Choose WebSecurityGroup and then choose the Inbound tab.
+• Choose Edit, then choose Add Rule.
+• In the third row that was just created, for Source, choose My IP.
+• Copy the IP address from the Classless Inter-Domain Routing (CIDR) block that is
+automatically populated (it will end in /32).
+)
+251100680022
+Confirm Network Interface
+aws ec2 describe-network-interfaces \
+--filters "Name=association.public-ip,Values='<WebServerIP>'"
+The result set confirms that the network interface ID that is recorded in the flow log
+matches the network interface that is assigned to the web server instance
+Translate the timestamps to human-readable form.
+Copy two long numbers that appear towards the end of each log entry, before the REJECT
+term.
+date -d @<unix-timestamp>
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+4. Given a cafe business application deployed on a web server
+configured to generate access and error logs, and the requirement for the
+cafe business client to monitor application and web server metrics, how
+would you design a monitoring and alerting system? Specifically, outline
+the steps you would take to ensure timely alerts to administrators when
+the application becomes unreachable to clients. Additionally, detail your
+approach to automatically backing up the EBS volume of the web server
+to take a snapshot in the event the web server transitions from a running
+state to a stopped state.
+Module 9: Lab 6 - Monitoring Infrastructure
+251100680022
+TASK 1: Install CloudWatch Agent on Web Server
+Step 1.1: Open Systems Manager
+• AWS Console → Services
+• Search → Systems Manager
+• Click Systems Manager
+Step 1.2: Install CloudWatch Agent
+1. Left panel → Node Tools
+2. Click Run Command
+3. Click Run a command
+4. Search document → select AWS-ConfigureAWSPackage
+251100680022
+Command Parameters
+• Action → Install
+• Name → AmazonCloudWatchAgent
+• Version → latest
+251100680022
+Targets
+• Select Choose instances manually
+• Select Web Server
+Click Run
+251100680022
+TASK 2: Configure CloudWatch Agent (Logs + Metrics)
+Step 2.1: Create Parameter Store Configuration
+1. Systems Manager → Parameter Store → Click Create parameter
+Parameter Details
+• Name → Monitor-Web-Server
+• Type → String
+• Description → Collect web logs and system metrics
+• Value
+251100680022
+3. Click Create parameter
+251100680022
+Step 2.2: Start CloudWatch Agent
+1. Systems Manager → Run Command
+2. Click Run a command
+3. Search → AmazonCloudWatch-ManageAgent
+251100680022
+Command Parameters
+• Action → configure
+• Mode → ec2
+• Optional Configuration Source → ssm
+• Optional Configuration Location → Monitor-Web-Server
+• Optional Restart → yes
+Targets
+• Select Web Server
+Click Run
+251100680022
+TASK 3: Monitor Application Logs (Access & Error Logs)
+Step 3.1: Generate Log Data
+1. EC2 → Instances
+2. Select Web Server
+3. Copy Public IPv4 address
+4. Browser → http://<WebServerIP>/start
+251100680022
+404 error page in browser
+Step 3.2: View Logs in CloudWatch
+1. Services → CloudWatch
+2. Left panel → Logs → Log Management → Log groups
+3. Open HttpAccessLog
+4. Click Log stream (instance-id)
+251100680022
+Line with /start request with a code of 404 is present
+251100680022
+Create Metric Filter for 404 Errors
+Step 1: Create Metric Filter
+1. CloudWatch → Logs → Log Management → Log groups
+2. Select HttpAccessLog
+3. Actions → Create metric filter
+Filter Pattern
+[ip, id, user, timestamp, request, status_code=404, size]
+4. Under Test pattern, use the drop down menu to select the ec2 instance id
+5. Click Test pattern
+6. Click Next
+251100680022
+Metric Details
+• Filter name → 404Errors
+• Namespace → LogMetrics
+• Metric name → 404Errors
+• Metric value → 1
+6. Click Next
+7. Click Create metric filter
+251100680022
+TASK 5: Create Alarm for Application Errors
+Step 5.1: Create Alarm
+1. CloudWatch → Logs → Log Management → Log groups
+2. Click HttpAccessLog
+3. Select Metric filters tab
+4. Select 404Errors
+5. Click Create alarm
+251100680022
+Alarm Settings
+• Period: 1 minute
+• Conditions:
+o Whenever 404Errors is: Greater/Equal
+o than: 5
+• Choose Next
+251100680022
+Notification
+• Send a notification to the following SNS topic: Create new topic
+• Email endpoints that will receive the notification: Enter an email address that
+you can access from the classroom
+• Choose Create topic
+• Choose Next
+251100680022
+Name and description
+• Alarm name: 404Errors
+• Alarm description: Alert when too many 404s detected on an instance
+• Choose Next
+•
+• Click Create alarm
+251100680022
+Go to your email, look for a confirmation message and select the Confirm subscription
+link.
+Verification
+• Opened a web browser and accessed the web server using its public IP address.
+• Attempted to access non-existent web pages by appending random page names to
+the IP address (e.g., /start2).
+• Repeated the invalid page requests at least five times to generate multiple 404
+errors.
+• Waited for 1–2 minutes to allow log data to be processed.
+• Refreshed the CloudWatch page to confirm the alarm status.
+• Observed the CloudWatch metric graph changing to red, indicating the alarm
+entered the IN ALARM state.
+• Checked the registered email and confirmed receipt of the alert titled “ALARM: 404
+Errors”.
+251100680022
+TASK 6: Monitor Instance Metrics
+Step 6.1: EC2 Metrics
+251100680022
+1. EC2 → Instances
+2. Select Web Server
+3. Open Monitoring tab
+Step 6.2: CloudWatch Agent Metrics
+1. CloudWatch → Metrics
+2. Namespace → CWAgent → device, fstype, host, path.
+3. Explore:
+251100680022
+251100680022
+4. CloudWatch → Metrics
+5. Namespace → CWAgent → host
+6. Explore:
+251100680022
+TASK 7: Real-Time Instance State Notifications
+Step 7.1: Create EventBridge Rule
+1. CloudWatch → Events
+2. Click Go to Amazon EventBridge
+3. Click Create rule
+Rule Details
+• Name → Instance_Stopped_Terminated
+• Choose Next
+251100680022
+• Event source → AWS services
+• Service → EC2
+• Event type → Instance State-change Notification
+• States → stopped, terminated
+• Choose Next
+Target
+• From the Select a target drop down list, choose SNS topic.
+• From the Topic drop down list, choose Default_CloudWatch_Alarms_Topic.
+251100680022
+4. Click Next , Next and then Create rule
+251100680022
+Task 5: Monitor for Infrastructure Compliance
+Enable AWS Config
+1. Services → Config
+2. Click 1-click setup
+3. Click Confirm
+Add Compliance Rules
+Rule 1: EBS Volume In Use
+1. Config → Rules → Add rule
+2. Search → ec2-volume-inuse-check
+3. Add rule
+251100680022
+251100680022
+Rule 2: Required Tags
+1. Add rule → required-tags
+2. Parameter:
+a. Key → project
+3. Add rule
+251100680022
+251100680022
+Choose the required-tags rule.
+Choose the dropdown box under the Resources in scope section and select All.
+Results: A compliant EC2 Instance (because the Web Server has a project tag) and many
+non-compliant resources that do not have a project t
+Choose the ec2-volume-inuse-check rule.
+Results: One compliant volume (attached to an instance) and one non-compliant volume
+(not attached to an instance)
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+5. Suppose the cafe business application's web server is compromised
+by an unauthorized user within the account, who adds a new rule to the
+security group and updates images of the web application. The client
+expresses the need to audit actions performed on resources to identify
+vulnerabilities and details. How would you approach auditing these
+actions, and what steps would you propose to prevent similar
+unauthorized access in the future?
+Module 9: Activity 9 - Working with AWS CloudTrail
+251100680022
+Task 1: Modify the Security Group and Observe Normal Website Behavior
+Step 1.1: Navigate to the EC2 Instance
+AWS Management Console → Services → EC2 → Instances
+• Select Cafe Web Server
+• Open the Security tab
+• Click WebSecurityGroup
+Step 1.2: Verify Existing Inbound Rules
+• Go to Inbound rules
+• Observe:
+o Only HTTP (TCP 80) is allowed
+251100680022
+Step 1.3: Add a Controlled SSH Rule
+• Choose Edit inbound rules
+• Click Add rule
+• Configure:
+o Type: SSH
+o Port: 22
+o Source: My IP (CIDR must end with /32)
+Step 1.4: Verify Website Is Normal
+• Copy Public IPv4 address
+• Open browser: http://<WebServerIP>/mompopcafe/
+251100680022
+Task 2: Create an AWS CloudTrail log and observe the hacked website
+Task 2.1: Create a CloudTrail Trail
+Services → CloudTrail → Trails → Create trail
+251100680022
+Configuration:
+• Trail name: Monitor
+• Storage: Create new S3 bucket
+• Bucket name: monitoring####
+• Encryption: Disabled
+251100680022
+Click Next
+• Events:
+o Select Management events
+o Select Read & Write
+o Click Next
+• Choose Create trail
+Task 2.2: Observe the Hacked Website
+• Refresh the café website (Shift + Refresh)
+• Website images are now defaced
+251100680022
+Step 2.3: Identify the New Security Group Rule
+EC2 → Instances → Cafe Web Server → Security → WebSecurityGroup → Inbound rules
+Unauthorized SSH rule from 0.0.0.0/0
+Task 3: Log Analysis Using SSH and grep
+Task 3.1: Connect to the Cafe Web Server host EC2 instance by using SSH
+Download PEM file from Details section
+251100680022
+chmod 400 labsuser.pem
+ssh -i labsuser.pem ec2-user@<WebServerIP>
+Task 3.2: Download CloudTrail Logs
+mkdir ctraillogs
+cd ctraillogs
+aws s3 ls
+aws s3 cp s3://monitoring####/ . --recursive
+251100680022
+cd AWSLogs/<account-num>/CloudTrail/<Region>/<yyyy>/<mm>/<dd>
+Extract logs:
+gunzip *.gz
+Task 3.3: Analyze Logs with grep
+Format logs: cat <filename.json> | python -m json.tool
+251100680022
+ip=<WebServerIP>
+for i in $(ls); do echo $i && cat $i | python -m json.tool | grep sourceIPAddress ; done
+251100680022
+for i in $(ls); do echo $i && cat $i | python -m json.tool | grep eventName ; done
+Task 3.5: Analyze the logs by using AWS CLI cloudtrail commands
+aws cloudtrail lookup-events --lookup-attributes
+AttributeKey=EventName,AttributeValue=ConsoleLogin
+aws cloudtrail lookup-events --lookup-attributes
+AttributeKey=ResourceType,AttributeValue=AWS::EC2::SecurityGroup --output text
+251100680022
+region=$(curl http://169.254.169.254/latest/dynamic/instance-identity/document|grep
+region | cut -d '"' -f4)
+sgId=$(aws ec2 describe-instances --filters "Name=tag:Name,Values='Cafe Web Server'" -
+-query 'Reservations[*].Instances[*].SecurityGroups[*].[GroupId]' --region $region --output
+text)
+echo $sgId
+aws cloudtrail lookup-events --lookup-attributes
+AttributeKey=ResourceType,AttributeValue=AWS::EC2::SecurityGroup --region $region --
+output text | grep $sgId
+251100680022
+Task 4: Analyze the CloudTrail logs by using Amazon Athena
+Task 4.1: Create Athena Table
+CloudTrail → Event history → Create Athena table
+• Select monitoring#### bucket
+• Create table
+251100680022
+Task 4.2: Analyze logs using Athena
+Navigate to Athena →Query Editor → Choose the plus icon next to table name to reveal the
+column names
+251100680022
+Go to Query Settings tab → Manage
+Click on Browse S3
+251100680022
+n the Location of query result box, add /results/ to the value
+251100680022
+Choose Save.
+Return to the Editor tab. Enter following SQL query into the New query 1 panel and choose
+Run.
+SELECT *
+FROM cloudtrail_logs_monitoring####
+LIMIT 5
+251100680022
+SELECT useridentity.userName,
+eventtime,
+eventsource,
+eventname,
+sourceipaddress
+FROM cloudtrail_logs_monitoring####
+WHERE eventsource = 'ec2.amazonaws.com'
+AND eventname LIKE '%SecurityGroup%';
+251100680022
+Hacker is identified:
+Task 5: Secure the System
+Task 5.1: Check OS Users
+command to find out who has recently logged into this OS:
+sudo aureport –auth
+Command to remove the chaos-user OS user:
+sudo userdel -r chaos-user
+Edit the SSH configuration file
+Comment out "PasswordAuthentication yes" line.
+251100680022
+Restart the SSH service so that the changes go into effect:
+In the EC2 console, return to the Web Server Security Group settings.
+With the WebSecurityGroup selected, go to the Inbound rules tab choose Edit inbound
+rules.
+Delete the inbound rule that allows port 22 access from 0.0.0.0/0 Save rules to save the
+change
+Task 5.3: Fix the website
+251100680022
+Navigate to the directory where the website image files are held and review the contents:
+cd /var/www/html/mompopcafe/images/
+Restore the original graphic on the website.
+sudo mv Coffee-and-Pastries.backup Coffee-and-Pastries.png
+Test the fix, by reloading the http://<WebServerIP>/mompopcafe website in the browser
+Task 5.4: Delete the AWS hacker user
+run the command below to delete the login profile.
+251100680022
+aws iam delete-login-profile --user-name=chaos
+open the IAM console and choose the Users link and check the box next to the chaos user.
+• Delete the chaos user.
+• Choose Delete, type in the user name chaos and choose Delete.
+6. The cafe business client wishes to update their website with new
+recipes, images, and videos. They have hired an external media company
+to create these images and videos. The client requires a secure file
+sharing mechanism to transfer data from the external company to the
+business owner. Additionally, they want to be notified immediately when
+images are added, updated, or deleted. As a cloud operations engineer,
+propose a solution to meet the business's needs.
+Module 8: Activity 8 - Work with Amazon S3
+251100680022
+Task 1: Connect to the AWS CLI Host instance by using SSH
+Download labsuser.pem from the Details
+cd ~/Downloads
+Change permissions: chmod 400 labsuser.pem
+Connected to EC2 instance: ssh -i labsuser.pem ec2-user@<public-ip>
+Task 1.2 – Configure AWS CLI
+Region Discovery:
+curl http://169.254.169.254/latest/dynamic/instance-identity/document | grep region
+251100680022
+AWS CLI Configuration: aws configure
+• Access Key ID: AccessKey value from Details section
+• Secret Access Key: SecretKey value from Details section
+• Region: Discovered region
+• Output format: json
+Task 2 – Create and Initialize Amazon S3 Share Bucket
+Create Bucket: aws s3 mb s3://mompopcafe-xxxnnn --region <region>
+Upload Initial Images: aws s3 sync ~/initial-images/ s3://mompopcafe-xxxnnn/images
+251100680022
+List Bucket Contents: aws s3 ls s3://mompopcafe-xxxnnn/images/ --human-readable –
+summarize
+Task 3: Review the media company user and permissions
+Task 3.1: Review the mompopuser IAM User
+Policy: AmazonS3ReadOnlyAccess
+Permissions:
+• s3:ListBucket
+• s3:GetObject
+• Scope: All S3 buckets (read-only)
+Task 3.2: Review the mediaco IAM Group
+Policies:
+• IAMUserChangePassword
+• mediaCoPolicy
+Permissions:
+• List bucket
+• Get, Put, Delete objects only under /images
+• No permission to modify bucket ACLs
+251100680022
+Task 3.3: Review the mediacouser IAM User
+251100680022
+251100680022
+251100680022
+Task 3.4: Test the mediacouser permissions
+Log in to the AWS Management Console as the mediacouser user by pating console sign in
+link in private window
+• For IAM user name, enter mediacouser
+• For Password, enter Training1!
+• Choose Sign in
+Allowed Actions
+• View image
+• Upload image
+• Delete image
+Task 4: Configure event notifications on the Amazon S3 share bucket
+Task 4.1: Create and configure the s3NotificationTopic
+SNS Topic
+251100680022
+• Name: s3NotificationTopic
+• Protocol: Email
+• Subscription confirmed successfully
+251100680022
+Copy and paste the value of the topic ARN field in a text editor to save it.
+Navigate to the created SNS Topic and click on Edit
+251100680022
+Replace with below contents in Access Policy section.Substitute <ARN of
+s3NotificationTopic> with the value of the topic ARN that you recorded earlier, and
+<mompopcafe-xxxnnn> with your unique S3 bucket name
+251100680022
+Save the Changes
+Task 4.2: Add an event notification configuration to the S3 bucket
+In the SSH window for the CLI Host instance,create a new file named
+s3EventNotification.json by entering:
+nano s3EventNotification.json
+Enter below contents
+251100680022
+In the JSON object, substitute <ARN of s3NotificationTopic> with the value of the topic
+ARNpic ARN
+251100680022
+Associate the event configuration file with the S3 share bucket.
+aws s3api put-bucket-notification-configuration --bucket <mompopcafe-xxxnnn> --
+notification-configuration file://s3EventNotification.json
+TestEvent email notification is received
+Task 5: Test the Amazon S3 share bucket event notifications
+Configure the CLI Host's AWS CLI client software to use the mediacouser credentials. In
+the SSH window for the CLI Host instance, enter:
+aws configure
+At the prompts, enter the following:
+• AWS Access Key ID: Copy and paste the value of the Access Key ID of the
+mediacouser, which is in the accessKeys.csv file
+• AWS Secret Access Key: Copy and paste the value of the Secret Access Key of the
+mediacouser, from the same file downloaded in Task 3.
+• Default region name: keep the same region you set earlier in this activity, by
+choosing ENTER at the prompt.
+• Default output format: json
+251100680022
+Test the put use case by uploading the Caramel-Delight.jpg image file from the new-
+images folder on the CLI Host. In the SSH window, enter:
+aws s3api put-object --bucket <mompopcafe-xxxnnn> --key images/Caramel-Delight.jpg --
+body ~/new-images/Caramel-Delight.jpg
+New email message with the subject Amazon S3 Notification is received
+Test the get use case. Get the object with a key of images/Donuts.jpg from the bucket. In
+the SSH window, enter:
+251100680022
+aws s3api get-object --bucket <mompopcafe-xxxnnn> --key images/Donuts.jpg Donuts.jpg
+Email notification was not generated for this operation,this is because the share bucket is
+configured to send notifications for only the object create and object delete actions.
+Test the delete use case. Delete the object with a key of images/Strawberry-Tarts.jpg
+from the bucket. In the SSH window, enter:
+aws s3api delete-object --bucket <mompopcafe-xxxnnn> --key images/Strawberry-
+Tarts.jpg
+New email message with the subject Amazon S3 Notification is received
+251100680022
+Test an unauthorized use case. Try to change the permission of the Donuts.jpg object so
+that it can be read publicly. In the SSH window, enter:
+aws s3api put-object-acl --bucket <mompopcafe-xxxnnn> --key images/Donuts.jpg --acl
+public-read
+The command fails and displays the following error message:
