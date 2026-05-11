@@ -5,3 +5,9 @@
     aws iam delete-access-key --user-name chaos --access-key-id c193507a4973262l13682821t1w769236326219
     aws iam delete-access-key --user-name chaos --access-key-id AKIA3GGQO25FTRMCEXE6
    aws iam delete-user --user-name chaos
+
+
+
+sudo yum install httpd -y
+sudo systemctl start httpd
+sudo systemctl enable httpd
